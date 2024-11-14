@@ -1,5 +1,8 @@
+import math
+import numpy
 import sys
 import time
+import tracemalloc
 
 
 def partition_pentagonal(n):
@@ -54,25 +57,62 @@ def partition_ewell(n):
 
 
 def akn(k, n):
-    # TODO: implement two version of this
-    pass
+    if k <= 1:
+        return k
+    elif k == 2:
+        return -1 if n % 2 else 1
+    s, r, m = 0, 2, n % k
+    for l in range(2 * k):
+        if m == 0:
+            s += (-1 if l % 2 else 1) * math.cos(math.pi * (6 * l - 1) / (6 * k))
+        m += r
+        if m >= k:
+            m -= k
+        r = r + 3
+        if r >= k:
+            r -= k
+        return math.sqrt(k / 3) * s
+
+
+def U(x):
+    return math.cosh(x) - math.sinh(x) / x
+
+
+def C(n):
+    return math.pi / 6 * math.sqrt(24 * n - 1)
 
 
 def partition_hrr(n):
-    # TODO: implement this
-    pass
+    N = int(math.sqrt(n)) + 1
+    answer = 0.0
+    for k in range(1, N + 1):
+        answer += (math.sqrt(3 / k) * (4 / (24 * n - 1))) * akn(k, n) * U(C(n) / k)
+    return int(answer + 0.5)
 
 
 def main():
-    n = 50000
+    n = 10 ** 4
     start = time.perf_counter()
-    print(partition_pentagonal(n))
+    tracemalloc.start()
+    sys.stdout.write(f'p({n}) = {partition_pentagonal(n)}\n')
     end = time.perf_counter()
-    sys.stdout.write(f'The pentagonal theorem gave {end - start:.3f} seconds to compute p({n}).\n')
+    sys.stdout.write(f'Memory used: {tracemalloc.get_traced_memory()[1] / 1024} KiB\n')
+    sys.stdout.write(f'The pentagonal theorem gave {end - start:.8f} seconds to compute p({n}).\n')
+    tracemalloc.stop()
     start = time.perf_counter()
-    print(partition_ewell(n))
+    tracemalloc.start()
+    sys.stdout.write(f'p({n}) = {partition_ewell(n)}\n')
     end = time.perf_counter()
-    sys.stdout.write(f'Ewell\'s formula gave {end - start:.3f} seconds to compute p({n}).\n')
+    sys.stdout.write(f'Memory used: {tracemalloc.get_traced_memory()[1] / 1024} KiB\n')
+    sys.stdout.write(f'Ewell\'s formula gave {end - start:.8f} seconds to compute p({n}).\n')
+    tracemalloc.stop()
+    start = time.perf_counter()
+    tracemalloc.start()
+    sys.stdout.write(f'p({n}) = {partition_hrr(n)}\n')
+    end = time.perf_counter()
+    sys.stdout.write(f'Memory used: {tracemalloc.get_traced_memory()[1] / 1024} KiB\n')
+    sys.stdout.write(f'Johansson\'s formula gave {end - start:.8f} seconds to compute p({n}).\n')
+    tracemalloc.stop()
 
 
 if __name__ == '__main__':
